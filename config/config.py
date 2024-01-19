@@ -8,6 +8,7 @@ config = {
         "msp-podcast":  "/media/data/sail-data/MSP-podcast",
         "msp-improv":   "/media/data/sail-data/MSP-IMPROV/MSP-IMPROV/",
         "ravdess":      "/media/data/public-data/SER/Ravdess",
+        "commsense":    "/media/data/commsense",
     },
     "project_dir":      "/media/data/projects/speech-privacy/trust-ser"
 }

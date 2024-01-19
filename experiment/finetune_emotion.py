@@ -157,7 +157,7 @@ if __name__ == '__main__':
     
     best_dict = dict()
     if args.dataset == "msp-improv": total_folds = 7
-    elif args.dataset == "msp-podcast": total_folds = 4
+    elif args.dataset in ["msp-podcast", "commsense"]: total_folds = 4
     else: total_folds = 6
     # We perform 5 folds (6 folds only on msp-improv data with 6 sessions)
     for fold_idx in range(1, total_folds):
@@ -207,8 +207,8 @@ if __name__ == '__main__':
         # Define the downstream models
         if args.downstream_model == "cnn":
             # Define the number of class
-            if args.dataset in ["iemocap", "msp-improv", "meld", "iemocap_impro"]: num_class = 4
-            elif args.dataset in ["msp-podcast"]: num_class = 4
+            if args.dataset in ["iemocap", "msp-improv", "meld", "iemocap_impro", "commsense"]: num_class = 4
+            elif args.dataset in ["msp-podcast", "commsense"]: num_class = 4
             elif args.dataset in ["crema_d"]: num_class = 4
             elif args.dataset in ["ravdess"]: num_class = 7
         

@@ -119,7 +119,7 @@ def include_for_finetune(
     data: list, dataset: str
 ):
     """
-    Return flag for inlusion of finetune.
+    Return flag for inclusion of finetune.
     :param data:        Input data entries [key, filepath, labels]
     :param dataset:     Input dataset name
     :return: flag:      True to include for finetuning, otherwise exclude for finetuning
@@ -144,6 +144,7 @@ def include_for_finetune(
         if data[-1] in ["neutral", "anger", "sadness", "joy"]: return True
     if dataset == "cmu-mosei": return True
     if dataset == "ravdess": return True
+    if dataset == "commsense": return True
     return False
 
 def map_label(
@@ -162,12 +163,12 @@ def map_label(
         # "msp-podcast": {0: "N", 1: "A", 2: "S", 3: "H", 4: "F", 5: "D", 6: "U", 7: "C"},
         # "msp-podcast": {"N": 0, "A": 1, "S": 2, "H": 3, "F": 4, "D": 5, "U": 6, "C": 7},
         "msp-podcast": {"N": 0, "A": 1, "S": 2, "H": 3},
-        # "msp-podcast": {"N": 0, "A": 1, "S": 2, "H": 3},
         "meld": {"neutral": 0, "anger": 1, "sadness": 2, "joy": 3},
         "crema_d": {"N": 0, "A": 1, "S": 2, "H": 3},
         "crema_d_complete": {"N": 0, "A": 1, "S": 2, "H": 3, "F": 4, "D": 5},
+        "commsense": {"neutral": 0, "anxious": 1},
     }
-    if dataset in ["iemocap", "msp-improv", "msp-podcast", "meld", "crema_d", "iemocap_impro", "crema_d_complete"]:
+    if dataset in ["iemocap", "msp-improv", "msp-podcast", "meld", "crema_d", "iemocap_impro", "crema_d_complete", "commsense"]:
         return label_dict[dataset][data[-1]]
     if dataset in ["cmu-mosei"]:
         # if data[-1] == 0: return 0
@@ -202,7 +203,8 @@ def log_dataset_details(
         "meld": {0: "neutral", 1: "anger", 2: "sadness", 3: "joy"},
         "cmu-mosei": {0: "postive", 1: "negative"},
         # "ravdess": {0: "neutral", 1: "calm", 2: "happy", 3: "sad", 4: "angry", 5: "fearful", 6: "disgust", 7: "surprised"}
-        "ravdess": {0: "neutral", 1: "happy", 2: "sad", 3: "angry", 4: "fearful", 5: "disgust", 6: "surprised"}
+        "ravdess": {0: "neutral", 1: "happy", 2: "sad", 3: "angry", 4: "fearful", 5: "disgust", 6: "surprised"},
+        "commsense": {0: "neutral", 1: "anxious"}
     }
     
     label_stats = dict()
@@ -216,46 +218,6 @@ def log_dataset_details(
         logging.info(f'Number of {split} audio files {label_dict[dataset][label]}: {label_stats[label]}')
     logging.info(f'------------------------------------------------')
     return label_stats
-    
-
-def load_pretrain_audios(
-    input_path: str
-):
-    """
-    Load pretrain audio data.
-    :param input_path: Input data path
-    :return train_file_list, dev_file_list: train and dev file list, we don't have test in pretrain
-    """
-    train_file_list, dev_file_list = list(), list()
-    train_stats_dict, dev_stats_dict = dict(), dict()
-    for dataset in ['iemocap', 'msp-improv', 'msp-podcast', 'meld', 'crema_d', 'ravdess', 'emov_db', 'cmu-mosei', 'vox-movie']:
-        with open(str(Path(input_path).joinpath(f'{dataset}.json')), "r") as f:
-            split_dict = json.load(f)
-        # some stats
-        train_stats_dict[dataset] = len(split_dict['train'])
-        dev_stats_dict[dataset] = len(split_dict['dev'])
-        for split in ['train', 'dev']:
-            for data in split_dict[split]:
-                if split == 'train': train_file_list.append(data)
-                elif split == 'dev': dev_file_list.append(data)
-
-    # logging train file nums
-    logging.info(f'------------------------------------------------')
-    logging.info(f'Number of train audio files {len(train_file_list)}')
-    logging.info(f'------------------------------------------------')
-    for dataset in ['iemocap', 'msp-improv', 'msp-podcast', 'meld', 'crema_d', 'ravdess', 'emov_db', 'cmu-mosei', 'vox-movie']:
-        logging.info(f'Number of train audio files {dataset}: {train_stats_dict[dataset]}')
-    logging.info(f'------------------------------------------------')
-    
-    # logging dev file nums
-    logging.info(f'------------------------------------------------')
-    logging.info(f'Number of dev audio files {len(dev_file_list)}')
-    logging.info(f'------------------------------------------------')
-    for dataset in ['iemocap', 'msp-improv', 'msp-podcast', 'meld', 'crema_d', 'ravdess', 'emov_db', 'cmu-mosei', 'vox-movie']:
-        logging.info(f'Number of dev audio files {dataset}: {dev_stats_dict[dataset]}')
-    logging.info(f'------------------------------------------------')
-    
-    return train_file_list, dev_file_list
 
 
 def load_finetune_audios(
@@ -278,7 +240,7 @@ def load_finetune_audios(
         with open(str(Path(input_path).joinpath(f'crema_d_fold{fold_idx}.json')), "r") as f: split_dict = json.load(f)
     elif dataset in ["iemocap", "crema_d", "ravdess", "msp-improv"]:
         with open(str(Path(input_path).joinpath(f'{dataset}_fold{fold_idx}.json')), "r") as f: split_dict = json.load(f)
-    elif dataset in ["msp-podcast"]:
+    elif dataset in ["msp-podcast", "commsense"]:
         with open(str(Path(input_path).joinpath(f'{dataset}.json')), "r") as f: split_dict = json.load(f)
     
     for split in ['train', 'dev', 'test']:
@@ -288,7 +250,7 @@ def load_finetune_audios(
                 data[-1] = map_label(data, dataset)
                 if dataset == "iemocap_impro" and "impro" not in data[0]: continue
                 speaker_id, file_path  = data[1], data[3]
-                if dataset in ['iemocap', 'msp-improv', 'meld', 'crema_d', 'msp-podcast']:
+                if dataset in ['iemocap', 'msp-improv', 'meld', 'crema_d', 'msp-podcast', 'commsense']:
                     output_path = Path(audio_path).joinpath(dataset, file_path.split('/')[-1])
                 elif dataset in ['ravdess', 'emov_db', 'vox-movie']:
                     output_path = Path(audio_path).joinpath(dataset, f'{speaker_id}_{file_path.split("/")[-1]}')
@@ -323,7 +285,7 @@ def return_weights(
     elif dataset in ["crema_d_complete"]:
         with open(str(Path(input_path).joinpath(f'crema_d_fold{fold_idx}.json')), "r") as f:
             split_dict = json.load(f)
-    elif dataset in ["msp-podcast"]:
+    elif dataset in ["msp-podcast", "commsense"]:
         with open(str(Path(input_path).joinpath(f'{dataset}.json')), "r") as f:
             split_dict = json.load(f)
     else:
@@ -362,7 +324,7 @@ def return_dataset_stats(
     elif dataset in ["crema_d_complete"]:
         with open(str(Path(input_path).joinpath(f'crema_d_fold{fold_idx}.json')), "r") as f:
             split_dict = json.load(f)
-    elif dataset in ["msp-podcast"]:
+    elif dataset in ["msp-podcast", "commsense"]:
         with open(str(Path(input_path).joinpath(f'{dataset}.json')), "r") as f:
             split_dict = json.load(f)
     else:

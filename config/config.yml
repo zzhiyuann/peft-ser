@@ -5,4 +5,5 @@ data_dir:
   msp-improv: /project/shrikann_35/tiantiaf/ser-data/MSP-IMPROV/
   msp-podcast: /project/shrikann_35/tiantiaf/ser-data/MSP-podcast
   ravdess: /project/shrikann_35/tiantiaf/ser-data/Ravdess
-project_dir: /project/shrikann_35/tiantiaf/effcient-ser
+  commsense: /data/dataset/transformer_sentence/data
+project_dir: /output
