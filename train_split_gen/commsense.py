@@ -24,12 +24,12 @@ if __name__ == '__main__':
     Path.mkdir(output_path.joinpath('train_split'), parents=True, exist_ok=True)
     train_list, dev_list, test_list = list(), list(), list()
 
-    df_labels = pd.read_csv("../data/dataset/transformer_sentence/metadata.csv", index_col=False)
+    df_labels = pd.read_csv(data_path + "metadata.csv", index_col=False)
     df_labels.state_anxiety[df_labels.state_anxiety < 4] = "neutral"
     df_labels.state_anxiety[df_labels.state_anxiety > 3] = "anxious"
     audio_paths = df_labels['file_name'].tolist()
 
-    audio_paths = ["../data/dataset/transformer_sentence/" + path for path in audio_paths]
+    audio_paths = [data_path + path for path in audio_paths]
 
     pid_labels = df_labels['PID'].tolist()
     anxiety_labels = df_labels['state_anxiety'].tolist()
