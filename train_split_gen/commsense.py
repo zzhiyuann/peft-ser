@@ -18,15 +18,17 @@ if __name__ == '__main__':
     # Read data path
     with open("../config/config.yml", "r") as stream:
         config = yaml.safe_load(stream)
-    data_path   = Path(config["data_dir"]["commsense"])
+    data_path   = str(Path(config["data_dir"]["commsense"]))
     output_path = Path(config["project_dir"])
 
     Path.mkdir(output_path.joinpath('train_split'), parents=True, exist_ok=True)
     train_list, dev_list, test_list = list(), list(), list()
 
-    df_labels = pd.read_csv(data_path + "metadata.csv", index_col=False)
-    df_labels.state_anxiety[df_labels.state_anxiety < 4] = "neutral"
-    df_labels.state_anxiety[df_labels.state_anxiety > 3] = "anxious"
+    df_labels = pd.read_csv(data_path + "/metadata.csv", index_col=False)
+    # 使用 apply 将小于 4 的值设为 "Neutral"，大于等于 4 的值设为 "Anxious"
+    df_labels['state_anxiety'] = df_labels['state_anxiety'].apply(lambda x: 'neutral' if x < 4 else 'anxious')
+    # df_labels.state_anxiety[df_labels.state_anxiety < 4] = "neutral"
+    # df_labels.state_anxiety[df_labels.state_anxiety > 3] = "anxious"
     audio_paths = df_labels['file_name'].tolist()
 
     audio_paths = [data_path + path for path in audio_paths]

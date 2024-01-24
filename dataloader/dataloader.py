@@ -59,7 +59,6 @@ class EmotionDatasetGenerator(Dataset):
     def __init__(
         self,
         data_list:              list,
-        noise_list:             list,
         data_len:               int,
         is_train:               bool=False,
         audio_duration:         int=6,
@@ -69,14 +68,12 @@ class EmotionDatasetGenerator(Dataset):
         """
         Set dataloader for emotion recognition finetuning.
         :param data_list:       Audio list files
-        :param noise_list:      Audio list files
         :param data_len:        Length of input audio file size
         :param is_train:        Flag for dataloader, True for training; False for dev
         :param audio_duration:  Max length for the audio length
         :param model_type:      Type of the model
         """
         self.data_list              = data_list
-        self.noise_list             = noise_list
         self.data_len               = data_len
         self.is_train               = is_train
         self.audio_duration         = audio_duration
@@ -373,39 +370,18 @@ def set_finetune_dataloader(
     :param apply_guassian_noise:    Apply Guassian Noise to audio or not
     :return dataloader:             Dataloader
     """
-
-    # noise files
-    noise_wav_files = glob.glob(
-        "/media/data/projects/speech-privacy/emo2vec/noise_audio/*.wav"
-    )
     
     # dataloader
     filtered_file_list = list()
     for file_path in input_file_list:
         if file_path[3] not in [
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/-7161_hlBOP5NskhM.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/678639_9K5mYSaoBL4.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/607281_9K5mYSaoBL4.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/730042_9K5mYSaoBL4.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/643200_9K5mYSaoBL4.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/570565_9K5mYSaoBL4.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/78720_ULkFbie8g-I.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/0_z7FicxE_pMU.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/7524_-mJ2ud6oKI8.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/78403_P0WaXnH37uI.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/255120_ULkFbie8g-I.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/0_278474.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/77605_bUFAN2TgPaU.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/491385_9bAgEmihzLs.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/96761_-mJ2ud6oKI8.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/133159_TxRS6vJ9ak0.wav",
-            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/768515_9K5mYSaoBL4.wav"
+            # filter files
+            "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/test.wav"
         ]:
             filtered_file_list.append(file_path)
             
     data_generator = EmotionDatasetGenerator(
         data_list=filtered_file_list, 
-        noise_list=noise_wav_files,
         data_len=len(filtered_file_list),
         is_train=is_train,
         model_type=args.downstream_model,
