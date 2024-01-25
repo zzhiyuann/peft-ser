@@ -1,9 +1,3 @@
 data_dir:
   commsense: /home/zhiyuan/Documents/PhD_Dissertation/data/dataset/transformer_sentence/
-  crema_d: /media/data/public-data/SER/crema_d/CREMA-D/
-  iemocap: /media/data/sail-data/iemocap/
-  meld: /media/data/public-data/SER/meld/MELD.Raw/
-  msp-improv: /media/data/sail-data/MSP-IMPROV/MSP-IMPROV/
-  msp-podcast: /media/data/sail-data/MSP-podcast
-  ravdess: /media/data/public-data/SER/Ravdess
 project_dir: /home/zhiyuan/Documents/PhD_Dissertation/finetune-output

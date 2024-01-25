@@ -23,7 +23,6 @@ if __name__ == '__main__':
     # Read configs
     with open("../config/config.yml", "r") as stream:
          config = yaml.safe_load(stream)
-    data_path   = Path(config["data_dir"]["crema_d"])
     split_path = Path(config["project_dir"]).joinpath("train_split")
     audio_path = Path(config["project_dir"]).joinpath("audio")
 
@@ -49,7 +48,7 @@ if __name__ == '__main__':
         for idx in tqdm(range(len(split_dict[split]))):
             # Read data: speaker_id, path
             data = split_dict[split][idx]
-            speaker_id, file_path = data[1], data[3]
+            speaker_id, file_path = data[1], data[0]
 
             # Read wavforms
             waveform, sample_rate = torchaudio.load(str(file_path))
@@ -63,13 +62,13 @@ if __name__ == '__main__':
                 transform_model = torchaudio.transforms.Resample(sample_rate, 16000)
                 waveform = transform_model(waveform)
 
-            # If the dataset is "cmu-mosei", extract a specific segment of the waveform based on time information.
-            if args.dataset == 'cmu-mosei':
-                start, end = int(data[4][0] * 16000), int(data[4][1] * 16000)
-                waveform = waveform[:, start:end]
+            # # If the dataset is "cmu-mosei", extract a specific segment of the waveform based on time information.
+            # if args.dataset == 'cmu-mosei':
+            #     start, end = int(data[4][0] * 16000), int(data[4][1] * 16000)
+            #     waveform = waveform[:, start:end]
 
             # Set the output path for the processed audio file based on the dataset and other information.
-            if args.dataset in ['iemocap', 'msp-improv', 'meld', 'crema_d', 'msp-podcast']:
+            if args.dataset in ['iemocap', 'msp-improv', 'meld', 'crema_d', 'msp-podcast', 'commsense']:
                 output_path = audio_path.joinpath(args.dataset, file_path.split('/')[-1])
             elif args.dataset in ['ravdess', 'emov_db', 'vox-movie']:
                 output_path = audio_path.joinpath(args.dataset, f'{speaker_id}_{file_path.split("/")[-1]}')
@@ -78,7 +77,7 @@ if __name__ == '__main__':
             
             # Save the audio file with desired sampling frequency
             torchaudio.save(str(output_path), waveform, 16000)
-            split_dict[split][idx][3] = str(output_path)
+            split_dict[split][idx][0] = str(output_path)
 
         # Logging the stats for train/dev/test
         logging.info(f'-------------------------------------------------------')

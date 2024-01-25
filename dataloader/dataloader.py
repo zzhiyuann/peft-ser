@@ -92,7 +92,7 @@ class EmotionDatasetGenerator(Dataset):
         self, item
     ):
         # Read original speech in dev
-        data, _ = torchaudio.load(self.data_list[item][3])
+        data, _ = torchaudio.load(self.data_list[item][0])
         data = data[0]
         if data.isnan()[0].item(): data = torch.zeros(data.shape)
         if len(data) > self.audio_duration*16000: data = data[:self.audio_duration*16000]
@@ -242,19 +242,17 @@ def load_finetune_audios(
     
     for split in ['train', 'dev', 'test']:
         for data in split_dict[split]:
-            # pdb.set_trace()
-            if include_for_finetune(data, dataset):
-                data[-1] = map_label(data, dataset)
-                if dataset == "iemocap_impro" and "impro" not in data[0]: continue
-                speaker_id, file_path  = data[1], data[3]
-                if dataset in ['iemocap', 'msp-improv', 'meld', 'crema_d', 'msp-podcast', 'commsense']:
-                    output_path = Path(audio_path).joinpath(dataset, file_path.split('/')[-1])
-                elif dataset in ['ravdess', 'emov_db', 'vox-movie']:
-                    output_path = Path(audio_path).joinpath(dataset, f'{speaker_id}_{file_path.split("/")[-1]}')
-                data[3] = str(output_path)
-                if split == 'train': train_file_list.append(data)
-                elif split == 'dev': dev_file_list.append(data)
-                elif split == 'test': test_file_list.append(data)
+            data[-1] = map_label(data, dataset)
+            # if dataset == "iemocap_impro" and "impro" not in data[0]: continue
+            file_path = data[0]
+            if dataset in ['iemocap', 'msp-improv', 'meld', 'crema_d', 'msp-podcast', 'commsense']:
+                output_path = Path(audio_path).joinpath(dataset, file_path.split('/')[-1])
+            elif dataset in ['ravdess', 'emov_db', 'vox-movie']:
+                output_path = Path(audio_path).joinpath(dataset, f'{speaker_id}_{file_path.split("/")[-1]}')
+            data[0] = str(output_path)
+            if split == 'train': train_file_list.append(data)
+            elif split == 'dev': dev_file_list.append(data)
+            elif split == 'test': test_file_list.append(data)
     
     # logging train/dev/test file nums
     log_dataset_details(train_file_list, split='train', dataset=dataset)
@@ -374,7 +372,7 @@ def set_finetune_dataloader(
     # dataloader
     filtered_file_list = list()
     for file_path in input_file_list:
-        if file_path[3] not in [
+        if file_path not in [
             # filter files
             "/media/data/projects/speech-privacy/emo2vec/audio/cmu-mosei/train/test.wav"
         ]:

@@ -25,9 +25,9 @@ sys.path.append(os.path.join(str(Path(os.path.realpath(__file__)).parents[1]), '
 from utils import parse_finetune_args, set_seed, log_epoch_result, log_best_result
 
 # from utils
-from wav2vec import Wav2VecWrapper
-from wavlm_plus import WavLMWrapper
-from whisper import WhisperWrapper
+from model.wav2vec import Wav2VecWrapper
+from model.wavlm_plus import WavLMWrapper
+from model.whisper import WhisperWrapper
 from evaluation import EvalMetric
 from dataloader import load_finetune_audios, set_finetune_dataloader, return_weights
 
@@ -157,7 +157,8 @@ if __name__ == '__main__':
     
     best_dict = dict()
     if args.dataset == "msp-improv": total_folds = 7
-    elif args.dataset in ["msp-podcast", "commsense"]: total_folds = 4
+    elif args.dataset in ["msp-podcast"]: total_folds = 4
+    elif args.dataset in ["commsense"]: total_folds = 2
     else: total_folds = 6
     # We perform 5 folds (6 folds only on msp-improv data with 6 sessions)
     for fold_idx in range(1, total_folds):
