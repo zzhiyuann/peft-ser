@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # Read data path
     with open("../config/config.yml", "r") as stream:
         config = yaml.safe_load(stream)
-    data_path   = str(Path(config["data_dir"]["commsense"]))
+    data_path = str(Path(config["data_dir"]["commsense"]))
     output_path = Path(config["project_dir"])
 
     Path.mkdir(output_path.joinpath('train_split'), parents=True, exist_ok=True)
@@ -41,9 +41,9 @@ if __name__ == '__main__':
     # 获取唯一的说话者ID列表
     unique_pids = df_labels['PID'].unique()
     # Leave-5-Out Cross Validation
-    lpo = LeavePOut(5)
-
-    print(lpo.get_n_splits(unique_pids))
+    # lpo = LeavePOut(5)
+    #
+    # print(lpo.get_n_splits(unique_pids))
     # 创建一个带有音频路径和标签的字典
     data_dict = {
         "audio": audio_paths,

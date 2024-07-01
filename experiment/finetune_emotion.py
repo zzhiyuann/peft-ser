@@ -87,7 +87,13 @@ def train_epoch(
         
         # forward pass
         outputs = model(x, length=length)
-                    
+        
+        if batch_idx == 0:  # 只在第一个批次打印，避免过多输出
+            logging.info(f"Number of classes: {outputs.shape[1]}")
+            logging.info(f"Shape of model output: {outputs.shape}")
+            logging.info(f"Shape of labels: {y.shape}")
+            logging.info(f"Unique labels: {torch.unique(y)}")
+                
         # backward
         loss = criterion(outputs, y)
         loss.backward()
@@ -163,6 +169,7 @@ if __name__ == '__main__':
     elif args.dataset in ["commsense"]: total_folds = 2
     else: total_folds = 6
     # We perform 5 folds (6 folds only on msp-improv data with 6 sessions)
+    
     for fold_idx in range(1, total_folds):
 
         # Read train/dev file list
@@ -210,8 +217,9 @@ if __name__ == '__main__':
         # Define the downstream models
         if args.downstream_model == "cnn":
             # Define the number of class
-            if args.dataset in ["iemocap", "msp-improv", "meld", "iemocap_impro", "commsense"]: num_class = 4
-            elif args.dataset in ["msp-podcast", "commsense"]: num_class = 4
+            if args.dataset in ["commsense"]: num_class = 2
+            elif args.dataset in ["iemocap", "msp-improv", "meld", "iemocap_impro"]: num_class = 4
+            elif args.dataset in ["msp-podcast"]: num_class = 4
             elif args.dataset in ["crema_d"]: num_class = 4
             elif args.dataset in ["ravdess"]: num_class = 7
         

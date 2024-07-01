@@ -141,7 +141,8 @@ def include_for_finetune(
         if data[-1] in ["neutral", "anger", "sadness", "joy"]: return True
     if dataset == "cmu-mosei": return True
     if dataset == "ravdess": return True
-    if dataset == "commsense": return True
+    if dataset == "commsense":
+        if data[-1] in ["neutral", "anxious"]: return True
     return False
 
 def map_label(
