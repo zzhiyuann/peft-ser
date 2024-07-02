@@ -25,9 +25,9 @@ sys.path.append(os.path.join(str(Path(os.path.realpath(__file__)).parents[1]), '
 from utils import parse_finetune_args, set_seed, log_epoch_result, log_best_result
 
 # from utils
-from model.wav2vec import Wav2VecWrapper
-from model.wavlm_plus import WavLMWrapper
-from model.whisper import WhisperWrapper
+from wav2vec import Wav2VecWrapper
+from wavlm_plus import WavLMWrapper
+from whisper import WhisperWrapper
 from evaluation import EvalMetric
 from dataloader import load_finetune_audios, set_finetune_dataloader, return_weights
 
@@ -76,7 +76,7 @@ def train_epoch(
     model.train()
     criterion = nn.CrossEntropyLoss(weights).to(device)
     eval_metric = EvalMetric()
-    
+
     logging.info(f'-------------------------------------------------------------------')
     for batch_idx, batch_data in enumerate(dataloader):
         # read data
@@ -84,33 +84,31 @@ def train_epoch(
         optimizer.zero_grad()
         x, y, length = batch_data
         x, y, length = x.to(device), y.to(device), length.to(device)
-        
+
         # forward pass
         outputs = model(x, length=length)
-        
-        if batch_idx == 0:  # 只在第一个批次打印，避免过多输出
-            logging.info(f"Number of classes: {outputs.shape[1]}")
-            logging.info(f"Shape of model output: {outputs.shape}")
-            logging.info(f"Shape of labels: {y.shape}")
-            logging.info(f"Unique labels: {torch.unique(y)}")
-                
+
         # backward
         loss = criterion(outputs, y)
         loss.backward()
-        
+
         # clip gradients
         optimizer.step()
-        
+
         eval_metric.append_classification_results(y, outputs, loss)
-        
+
         if (batch_idx % 10 == 0 and batch_idx != 0) or batch_idx == len(dataloader) - 1:
             result_dict = eval_metric.classification_summary()
-            logging.info(f'Fold {fold_idx} - Current Train Loss at epoch {epoch}, step {batch_idx+1}/{len(dataloader)}: {result_dict["loss"]:.3f}')
-            logging.info(f'Fold {fold_idx} - Current Train UAR at epoch {epoch}, step {batch_idx+1}/{len(dataloader)}: {result_dict["uar"]:.2f}%')
-            logging.info(f'Fold {fold_idx} - Current Train ACC at epoch {epoch}, step {batch_idx+1}/{len(dataloader)}: {result_dict["acc"]:.2f}%')
-            logging.info(f'Fold {fold_idx} - Current Train LR at epoch {epoch}, step {batch_idx+1}/{len(dataloader)}: {scheduler.optimizer.param_groups[0]["lr"]}')
+            logging.info(
+                f'Fold {fold_idx} - Current Train Loss at epoch {epoch}, step {batch_idx + 1}/{len(dataloader)}: {result_dict["loss"]:.3f}')
+            logging.info(
+                f'Fold {fold_idx} - Current Train UAR at epoch {epoch}, step {batch_idx + 1}/{len(dataloader)}: {result_dict["uar"]:.2f}%')
+            logging.info(
+                f'Fold {fold_idx} - Current Train ACC at epoch {epoch}, step {batch_idx + 1}/{len(dataloader)}: {result_dict["acc"]:.2f}%')
+            logging.info(
+                f'Fold {fold_idx} - Current Train LR at epoch {epoch}, step {batch_idx + 1}/{len(dataloader)}: {scheduler.optimizer.param_groups[0]["lr"]}')
             logging.info(f'-------------------------------------------------------------------')
-    
+
     logging.info(f'-------------------------------------------------------------------')
     result_dict = eval_metric.classification_summary()
     return result_dict
@@ -165,11 +163,9 @@ if __name__ == '__main__':
     
     best_dict = dict()
     if args.dataset == "msp-improv": total_folds = 7
-    elif args.dataset in ["msp-podcast"]: total_folds = 4
-    elif args.dataset in ["commsense"]: total_folds = 2
+    elif args.dataset == "msp-podcast": total_folds = 4
     else: total_folds = 6
     # We perform 5 folds (6 folds only on msp-improv data with 6 sessions)
-    
     for fold_idx in range(1, total_folds):
 
         # Read train/dev file list
@@ -202,31 +198,23 @@ if __name__ == '__main__':
         
         # Set seeds
         set_seed(8*fold_idx)
-        
+
         # Define the model wrapper
         if args.pretrain_model == "wav2vec2_0":
             # Wav2vec2_0 Wrapper
-            model = Wav2VecWrapper(args).to(device)
+            model = Wav2VecWrapper(args, output_class_num=4).to(device)
         elif args.pretrain_model == "wavlm_plus":
             # WavLM Plus Wrapper
-            model = WavLMWrapper(args).to(device)
-        elif args.pretrain_model in ["whisper_tiny", "whisper_base", "whisper_small", "whisper_medium", "whisper_large"]:
+            model = WavLMWrapper(args, output_class_num=4).to(device)
+        elif args.pretrain_model in ["whisper_tiny", "whisper_base", "whisper_small", "whisper_medium",
+                                     "whisper_large"]:
             # Whisper Plus Wrapper
-            model = WhisperWrapper(args).to(device)
-        
-        # Define the downstream models
-        if args.downstream_model == "cnn":
-            # Define the number of class
-            if args.dataset in ["commsense"]: num_class = 2
-            elif args.dataset in ["iemocap", "msp-improv", "meld", "iemocap_impro"]: num_class = 4
-            elif args.dataset in ["msp-podcast"]: num_class = 4
-            elif args.dataset in ["crema_d"]: num_class = 4
-            elif args.dataset in ["ravdess"]: num_class = 7
-        
+            model = WhisperWrapper(args, output_class_num=4).to(device)
+
         # Read trainable params
         model_parameters = list(filter(lambda p: p.requires_grad, model.parameters()))
         params = sum([np.prod(p.size()) for p in model_parameters])
-        logging.info(f'Trainable params size: {params/(1e6):.2f} M')
+        logging.info(f'Trainable params size: {params / (1e6):.2f} M')
         
         # Define optimizer
         optimizer = torch.optim.Adam(
